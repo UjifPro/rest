@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: Витрина заявок
+  description: API витрины кредитных заявок
+  version: 1.0.3
+servers:
+  - url: http://localhost:8080/showcase/
+    description: SwaggerHub API Auto Mocking
+tags:
+  - name: Application showcase
+    description: Operations available to regular users
+paths:
+  /applications/{uid}:
+    get:
+      tags:
+        - Application showcase
+      summary: Поиск заявки по первичному ключу (uuid)
+      operationId: searchByKey
+      parameters:
+        - name: uid
+          in: path
+          description: Идентификатор заявки (uuid)
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        "404":
+          description: bad input parameter
+  /applications/byId/{id}:
+    get:
+      tags:
+        - Application showcase
+      summary: Поиск заявки по упрощенному идентификатору
+      operationId: searchBySimpleId
+      parameters:
+        - name: id
+          in: path
+          description: Упрощенный идентификатор заявки
+          required: true
+          style: simple
+          explode: false
+          schema:
+            pattern: ^\w{2}(?:-\d{3}){3}$
+            type: string
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        "404":
+          description: bad input parameter
+  /applications/byClient/{id}:
+    get:
+      tags:
+        - Application showcase
+      summary: Поиск заявок по клиенту
+      operationId: searchByClient
+      parameters:
+        - name: id
+          in: path
+          description: УИК клиента (MDM-ID)
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: skip
+          in: query
+          description: Величина сдвига (первые <skip> записей должны быть пропущены при формировании ответа)
+          required: false
+          style: form
+          explode: true
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Максимальное количество заявок в ответе
+          required: false
+          style: form
+          explode: true
+          schema:
+            maximum: 50
+            minimum: 0
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        "404":
+          description: bad input parameter
+  /applications/byEmployee/{id}:
+    get:
+      tags:
+        - Application showcase
+      summary: Поиск заявок по сотруднику
+      description: Поиск заявок по табельному номеру сотрудника. Если параметр actionType равно create - возвращается список заявок, созданных указанным сотрудником. Если actionType равно update - возвращается список заявок, с которыми данный сотрудник работал. Если параметр actionType равно read - возврщается список заявок, которые данный сотрудник просматривал. Если параметр actionType равно issue - возврщается список заявок, которые данный сотрудник выдал. Если параметр actionType равно any - возвращается список заявок с которыми данный сотрудник взаимодействовал (включая создание, работу, просмотр и выдачу).
+      operationId: searchByEmployee
+      parameters:
+        - name: id
+          in: path
+          description: Табельный номер сотрудника
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: actionType
+          in: query
+          description: Тип взаимодействия с заявкой
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+              - CREATE
+              - UPDATE
+              - READ
+              - ISSUE
+              - ANY
+        - name: skip
+          in: query
+          description: Величина сдвига (первые <skip> записей должны быть пропущены при формировании ответа)
+          required: false
+          style: form
+          explode: true
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Максимальное количество заявок в ответе
+          required: false
+          style: form
+          explode: true
+          schema:
+            maximum: 50
+            minimum: 0
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        "404":
+          description: bad input parameter
+  /applications/byPOS/{id}:
+    get:
+      tags:
+        - Application showcase
+      summary: Поиск заявок по точке продаж
+      description: Поиск заявок по точке продаж. Если параметр actionType равен create, возвращает заявки, созданные сотрудниками, привязанными к указанной ТП. Если параметр actionType равен update, возвращает заявки, которые брались в работу сотрудниками, привязанными к указанной ТП. Если параметр actionType равен read, возвращат заявки, которые просматривались сотрудниками, привязанными к указанной ТП. Если параметр actionType равен issue, возвращат заявки, которые были выданы сотрудниками, привязанными к указанной ТП. Если параметр actionType равен any, возвращат заявки, с которыми взаимодействовали (включая создание, работу, просмотр и выдачу) сотрудники, привязанные к указанной ТП.
+      operationId: searchByPOS
+      parameters:
+        - name: id
+          in: path
+          description: Код БИСквит точки продаж
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: string
+        - name: actionType
+          in: query
+          description: Тип взаимодействия с заявкой
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+              - CREATE
+              - UPDATE
+              - READ
+              - ISSUE
+              - ANY
+        - name: skip
+          in: query
+          description: Величина сдвига (первые <skip> записей должны быть пропущены при формировании ответа)
+          required: false
+          style: form
+          explode: true
+          schema:
+            minimum: 0
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Максимальное количество заявок в ответе
+          required: false
+          style: form
+          explode: true
+          schema:
+            maximum: 50
+            minimum: 0
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        "404":
+          description: bad input parameter
+components:
+  schemas:
+    Application:
+      required:
+        - accessChannel
+        - clientId
+        - created
+        - creationChannel
+        - creatrionRegion
+        - id
+        - stage
+        - type
+        - updated
+      type: object
+      properties:
+        id:
+          type: string
+          description: Идентификатор заявки
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        simpleId:
+          pattern: ^\w{2}(?:-\d{3}){3}$
+          type: string
+          description: Простой (человеко-читаемый) идентификатор заявки
+          example: UZ-123-453-234
+        clientId:
+          type: string
+          description: УИК клиента (MDM-ID)
+        created:
+          type: string
+          description: Дата/время создания заявки (формат RFC 3339, section 5.6)
+          format: date-time
+          example: '2020-08-29T12:33:01Z'
+        updated:
+          type: string
+          description: Дата/время последнего взаимодействия с заявкой (RFC 3339, section 5.6)
+          format: date-time
+          example: '2020-09-29T09:10:26Z'
+        type:
+          type: string
+          description: Тип заявки
+        stage:
+          type: string
+          description: Этап жизненного цикла заявки
+        creationRegion:
+          type: string
+          description: Русскоязычное наименование региона заведения заявки
+        creationChannel:
+          type: string
+          description: Канал заведения заявки (каноническое значение)
+        accessChannel:
+          type: string
+          description: Канал последнего взаимодействия с заявкой (каноническое значение)
+        action:
+          minItems: 0
+          type: array
+          description: Информация о действиях с заявкой
+          items:
+            $ref: '#/components/schemas/Action'
+        product:
+          minItems: 0
+          type: array
+          description: Информация о кредитных продуктах, выбранных в заявке
+          items:
+            $ref: '#/components/schemas/Product'
+    Action:
+      required:
+        - FullName
+        - actionTime
+        - actionType
+        - id
+        - posBranch
+        - posId
+        - posName
+      type: object
+      properties:
+        id:
+          type: string
+          description: Табельный номер сотрудника
+        FullName:
+          type: string
+          description: ФИО сотрудника
+        posId:
+          type: string
+          description: Код Бисквит точки продаж, к которой привязан струдник
+        posName:
+          type: string
+          description: Название точки продаж, к которой привязан сотрудник
+        posBranch:
+          type: string
+          description: Код филиала Бисквит (каноническое значение)
+        actionType:
+          type: string
+          description: Тип действия, совершенного сотрудником с заявкой (cоздание заявки - CREATE, работа с заявкой - UPDATE, просмотр заявки - READ, выдача - ISSUE)
+          enum:
+            - CREATE
+            - UPDATE
+            - READ
+            - ISSUE
+        actionTime:
+          type: string
+          description: Дата/время взаимодействия с заявкой (RFC 3339, section 5.6)
+          format: date-time
+          example: '2020-09-29T09:10:26Z'
+    Product:
+      required:
+        - amount
+        - crossSales
+        - type
+      type: object
+      properties:
+        type:
+          type: string
+          description: Тип продукта
+        amount:
+          pattern: ^\d+(?:\.\d{1,2})?$
+          type: string
+          description: Для КН, Рефин, PACL, TOP_UP - сумма на руки; для КК, PACC, CPACC - лимит по карте.
+          example: 155000.00
+        maxCardLimit:
+          pattern: ^\d+(?:\.\d{1,2})?$
+          type: string
+          description: Для КК, PACC - максимально одобренный в рамках заявки лимит по карте (для последующего увеличения лимита).
+        crossSales:
+          type: boolean
+          description: Признак кросс-продажи
